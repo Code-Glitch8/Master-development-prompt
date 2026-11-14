@@ -1,0 +1,35 @@
+# Runtime data stays on the user's computer, never in git
+data/
+*.db
+*.db-wal
+*.db-shm
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+# Node / frontend
+node_modules/
+frontend/dist/
+*.tsbuildinfo
+
+# Build output
+build/
+dist/
+release/
+*.spec.bak
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

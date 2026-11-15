@@ -1,6 +1,6 @@
 # Development status
 
-Last verified: backend **108 pytest tests pass**, frontend **25 vitest tests pass**, `tsc --noEmit` clean, frozen
+Last verified: backend **109 pytest tests pass**, frontend **25 vitest tests pass**, `tsc --noEmit` clean, frozen
 Linux build of the PyInstaller bundle passes `scripts/smoke_test.py`, demo workflow passes.
 
 | Stage | Status |
@@ -19,7 +19,10 @@ Linux build of the PyInstaller bundle passes `scripts/smoke_test.py`, demo workf
 | GitHub Actions (`test.yml`, `build-windows.yml`, `release.yml`) | Written and YAML-validated; see "CI results" below |
 
 ## CI results
-Recorded after the first runs on GitHub; see the Actions tab for current status.
+Latest push to `main`: **Test** (backend on Ubuntu + Windows, frontend, secret scan) and **Build Windows**
+(PyInstaller build on `windows-latest` + smoke test of the built `.exe` + ZIP artifact) all passed.
+The first Windows test run caught a real bug (project deletion left git's read-only files behind); it is fixed and covered by a test.
+`release.yml` has **not been exercised yet**: the tag push from the development session was blocked, so no release exists until you push a tag (see README).
 
 ## Known limitations (honest list)
 * **Windows-only pieces are unverified locally**: the development sandbox is Linux. The `.bat` scripts, the

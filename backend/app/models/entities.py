@@ -7,7 +7,6 @@ from typing import Any
 from sqlalchemy import (
     JSON,
     Boolean,
-    DateTime,
     Float,
     ForeignKey,
     Index,
@@ -18,7 +17,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ..database import Base
+from ..database import Base, UTCDateTime
 from .enums import (
     ChangeDecision,
     ExecutionMode,
@@ -46,9 +45,9 @@ class Project(Base):
     plan_status: Mapped[str] = mapped_column(String(20), default=PlanStatus.DRAFT.value)
     auto_approve_plan: Mapped[bool] = mapped_column(Boolean, default=False)
     instructions: Mapped[str] = mapped_column(Text, default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow, onupdate=utcnow
+        UTCDateTime, default=utcnow, onupdate=utcnow
     )
 
     files: Mapped[list["ProjectFile"]] = relationship(
@@ -79,7 +78,7 @@ class ProjectFile(Base):
     is_doc: Mapped[bool] = mapped_column(Boolean, default=False)
     is_protected: Mapped[bool] = mapped_column(Boolean, default=False)
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow, onupdate=utcnow
+        UTCDateTime, default=utcnow, onupdate=utcnow
     )
 
     project: Mapped[Project] = relationship(back_populates="files")
@@ -97,9 +96,9 @@ class ProjectPrompt(Base):
     is_template: Mapped[bool] = mapped_column(Boolean, default=False)
     preferences: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     analysis: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow, onupdate=utcnow
+        UTCDateTime, default=utcnow, onupdate=utcnow
     )
 
     project: Mapped[Project] = relationship(back_populates="prompts")
@@ -139,10 +138,10 @@ class AIAccount(Base):
     credential_ref: Mapped[str | None] = mapped_column(String(200), nullable=True)
     config: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     last_verified_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
+        UTCDateTime, nullable=True
     )
     unavailable_reason: Mapped[str] = mapped_column(Text, default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
 
     provider: Mapped[AIProvider] = relationship(back_populates="accounts")
 
@@ -157,7 +156,7 @@ class ProjectProviderAssignment(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"))
     account_id: Mapped[int] = mapped_column(ForeignKey("ai_accounts.id", ondelete="CASCADE"))
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
 
 
 class Task(Base):
@@ -193,16 +192,16 @@ class Task(Base):
     retry_count: Mapped[int] = mapped_column(Integer, default=0)
     max_retries: Mapped[int] = mapped_column(Integer, default=3)
     next_attempt_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
+        UTCDateTime, nullable=True
     )
     lock_token: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    locked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    locked_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
     approved: Mapped[bool] = mapped_column(Boolean, default=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow, onupdate=utcnow
+        UTCDateTime, default=utcnow, onupdate=utcnow
     )
-    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
 
     project: Mapped[Project] = relationship(back_populates="tasks")
     executions: Mapped[list["TaskExecution"]] = relationship(
@@ -237,8 +236,8 @@ class TaskExecution(Base):
     run_state: Mapped[str] = mapped_column(String(20), default=RunState.PROCESSING.value)
     outcome: Mapped[str] = mapped_column(String(30), default="started")
     error: Mapped[str] = mapped_column(Text, default="")
-    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
-    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    started_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
+    finished_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
 
     task: Mapped[Task] = relationship(back_populates="executions")
 
@@ -256,7 +255,7 @@ class Conversation(Base):
         ForeignKey("tasks.id", ondelete="CASCADE"), nullable=True
     )
     title: Mapped[str] = mapped_column(String(300), default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
 
     messages: Mapped[list["ConversationMessage"]] = relationship(
         back_populates="conversation",
@@ -281,7 +280,7 @@ class ConversationMessage(Base):
     task_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     execution_status: Mapped[str] = mapped_column(String(30), default="")
     meta: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
 
     conversation: Mapped[Conversation] = relationship(back_populates="messages")
 
@@ -304,7 +303,7 @@ class Attachment(Base):
     size: Mapped[int] = mapped_column(Integer, default=0)
     sha256: Mapped[str] = mapped_column(String(64), default="")
     applied: Mapped[bool] = mapped_column(Boolean, default=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
 
 
 class Checkpoint(Base):
@@ -319,7 +318,7 @@ class Checkpoint(Base):
     state: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     snapshot_path: Mapped[str] = mapped_column(Text, default="")
     git_commit: Mapped[str] = mapped_column(String(64), default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
 
 
 class FileChange(Base):
@@ -339,8 +338,8 @@ class FileChange(Base):
     backup_path: Mapped[str] = mapped_column(Text, default="")
     protected: Mapped[bool] = mapped_column(Boolean, default=False)
     summary: Mapped[str] = mapped_column(Text, default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
-    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
+    decided_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
 
 
 class ActivityLog(Base):
@@ -354,7 +353,7 @@ class ActivityLog(Base):
     event: Mapped[str] = mapped_column(String(60), default="")
     message: Mapped[str] = mapped_column(Text, default="")
     data: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
 
 
 class Notification(Base):
@@ -367,7 +366,7 @@ class Notification(Base):
     project_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     read: Mapped[bool] = mapped_column(Boolean, default=False)
     delivered: Mapped[bool] = mapped_column(Boolean, default=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
 
 
 class ApplicationSetting(Base):
@@ -376,5 +375,5 @@ class ApplicationSetting(Base):
     key: Mapped[str] = mapped_column(String(100), primary_key=True)
     value: Mapped[Any] = mapped_column(JSON, default=None)
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow, onupdate=utcnow
+        UTCDateTime, default=utcnow, onupdate=utcnow
     )

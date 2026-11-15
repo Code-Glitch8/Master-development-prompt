@@ -25,9 +25,10 @@ from ..services import activity
 from ..services.settings_service import all_settings, set_setting
 from ..workers.engine import engine
 from . import serializers as ser
+from .route import CommitRoute
 from .deps import project_or_404
 
-router = APIRouter(prefix="/api", tags=["system"])
+router = APIRouter(prefix="/api", tags=["system"], route_class=CommitRoute)
 
 
 class SettingsBody(BaseModel):

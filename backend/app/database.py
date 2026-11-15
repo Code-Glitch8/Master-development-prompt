@@ -4,7 +4,11 @@ from __future__ import annotations
 from contextlib import contextmanager
 from typing import Iterator
 
-from sqlalchemy import create_engine, event
+from datetime import datetime, timezone
+
+from fastapi import Request
+from sqlalchemy import DateTime, create_engine, event
+from sqlalchemy.types import TypeDecorator
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
@@ -13,6 +17,29 @@ from .config import get_settings
 
 class Base(DeclarativeBase):
     pass
+
+
+class UTCDateTime(TypeDecorator):
+    """Always stores UTC and always returns timezone-aware UTC datetimes.
+
+    SQLite drops tzinfo, which made the API emit timestamps without an offset; browsers then
+    read them as local time (off by hours). Returning aware values makes `.isoformat()` carry +00:00.
+    """
+
+    impl = DateTime
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return None
+        if value.tzinfo is None:
+            return value  # naive values are treated as UTC
+        return value.astimezone(timezone.utc).replace(tzinfo=None)
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return None
+        return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value.astimezone(timezone.utc)
 
 
 _engine: Engine | None = None
@@ -76,12 +103,18 @@ def session_scope() -> Iterator[Session]:
         s.close()
 
 
-def get_db() -> Iterator[Session]:
-    """FastAPI dependency."""
+def get_db(request: Request) -> Iterator[Session]:
+    """FastAPI dependency: one session per request.
+
+    NOTE: FastAPI >= 0.118 runs the code after `yield` AFTER the response has been sent, so the real
+    commit happens in `CommitRoute` (api/route.py) before the response goes out. The commit below is
+    only a safety net and is a no-op once committed.
+    """
     if _SessionLocal is None:
         init_engine()
     assert _SessionLocal is not None
     s = _SessionLocal()
+    request.state.db = s
     try:
         yield s
         s.commit()

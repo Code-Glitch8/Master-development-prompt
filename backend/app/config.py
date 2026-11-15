@@ -77,10 +77,14 @@ class Settings:
 
     @property
     def frontend_dist(self) -> Path:
+        """Built dashboard. Independent of where user data lives (PROJECT_PILOT_HOME)."""
+        override = os.environ.get("PROJECT_PILOT_FRONTEND")
+        if override:
+            return Path(override).resolve()
         if getattr(sys, "frozen", False):
-            meipass = Path(getattr(sys, "_MEIPASS", self.base_dir))
+            meipass = Path(getattr(sys, "_MEIPASS", Path(sys.executable).resolve().parent))
             return meipass / "frontend_dist"
-        return self.base_dir / "frontend" / "dist"
+        return Path(__file__).resolve().parents[2] / "frontend" / "dist"
 
     def ensure_dirs(self) -> None:
         for d in (

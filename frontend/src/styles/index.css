@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root[data-theme="dark"] {
+  --bg: 11 13 18; --panel: 19 22 30; --panel2: 26 30 41; --line: 42 47 62;
+  --fg: 230 232 240; --muted: 140 147 165; --accent: 129 140 248;
+  --ok: 74 222 128; --warn: 250 204 21; --bad: 248 113 113; --info: 96 165 250;
+}
+:root[data-theme="light"] {
+  --bg: 246 247 250; --panel: 255 255 255; --panel2: 241 243 248; --line: 218 222 232;
+  --fg: 23 27 38; --muted: 98 106 126; --accent: 79 70 229;
+  --ok: 22 163 74; --warn: 202 138 4; --bad: 220 38 38; --info: 37 99 235;
+}
+
+html, body, #root { height: 100%; }
+body { @apply bg-bg text-fg font-sans antialiased; margin: 0; }
+* { scrollbar-width: thin; scrollbar-color: rgb(var(--line)) transparent; }
+@media (prefers-reduced-motion: no-preference) {
+  .fade-in { animation: fade .18s ease-out; }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+}
+.diff-add { background: rgb(var(--ok) / .14); }
+.diff-del { background: rgb(var(--bad) / .14); }
+.diff-hunk { color: rgb(var(--info)); }

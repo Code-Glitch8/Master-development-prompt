@@ -15,9 +15,10 @@ from ..models import AIAccount, MessageKind, Project, Task, TaskStatus
 from ..tasks import execution, queue
 from ..workers.engine import build_prompt
 from . import serializers as ser
+from .route import CommitRoute
 from .deps import project_or_404, task_or_404
 
-router = APIRouter(prefix="/api", tags=["tasks"])
+router = APIRouter(prefix="/api", tags=["tasks"], route_class=CommitRoute)
 
 
 class TaskCreate(BaseModel):

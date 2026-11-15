@@ -19,9 +19,10 @@ from ..services.activity import log_event
 from ..tasks import planner, queue
 from ..utils.paths import UnsafePathError, is_protected, safe_join
 from . import serializers as ser
+from .route import CommitRoute
 from .deps import project_or_404, prompt_or_404
 
-router = APIRouter(prefix="/api", tags=["projects"])
+router = APIRouter(prefix="/api", tags=["projects"], route_class=CommitRoute)
 
 PROMPT_TEMPLATES = [
     {"id": "redesign", "title": "Redesign & polish UI",

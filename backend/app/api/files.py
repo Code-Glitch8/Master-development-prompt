@@ -16,9 +16,10 @@ from ..models import Attachment, Checkpoint, FileChange, Project, Task
 from ..projects import gitops
 from ..projects.importer import project_root
 from ..tasks import execution
+from .route import CommitRoute
 from .deps import change_or_404, checkpoint_or_404, project_or_404, task_or_404
 
-router = APIRouter(prefix="/api", tags=["files"])
+router = APIRouter(prefix="/api", tags=["files"], route_class=CommitRoute)
 
 
 class DecideBody(BaseModel):

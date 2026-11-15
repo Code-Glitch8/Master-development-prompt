@@ -16,9 +16,10 @@ from ..providers.registry import (
 )
 from ..services.activity import log_event
 from . import serializers as ser
+from .route import CommitRoute
 from .deps import account_or_404
 
-router = APIRouter(prefix="/api", tags=["accounts"])
+router = APIRouter(prefix="/api", tags=["accounts"], route_class=CommitRoute)
 
 
 class AccountCreate(BaseModel):

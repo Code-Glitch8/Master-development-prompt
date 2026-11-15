@@ -103,3 +103,15 @@ def test_unity_and_android_detection(client):
     r = client.post("/api/projects/import/zip", files={"file": ("g.zip", z, "application/zip")})
     t = set(r.json()["inventory"]["project_types"])
     assert {"Unity", "Android", "Java", "Kotlin", "C/C++", "C#"} <= t
+
+
+def test_timestamps_are_timezone_aware_utc(client, project):
+    """Regression: naive timestamps were read by browsers as local time (hours off)."""
+    from datetime import datetime, timedelta, timezone
+
+    for ts in (project["created_at"], project["updated_at"]):
+        dt = datetime.fromisoformat(ts)
+        assert dt.tzinfo is not None and dt.utcoffset() == timedelta(0), ts
+        assert abs(datetime.now(timezone.utc) - dt) < timedelta(minutes=2)
+    acts = client.get("/api/activity").json()
+    assert acts and all(datetime.fromisoformat(a["created_at"]).tzinfo for a in acts)

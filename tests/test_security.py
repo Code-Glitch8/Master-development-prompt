@@ -127,3 +127,20 @@ def test_default_bind_is_loopback(home):
     from app.config import get_settings
 
     assert get_settings().host == "127.0.0.1"
+
+
+def test_rmtree_force_removes_readonly_files(tmp_path):
+    """Regression (Windows CI): git object files are read-only and plain rmtree left the project behind."""
+    import os
+    import stat
+
+    from app.utils.paths import rmtree_force
+
+    d = tmp_path / "repo" / ".git" / "objects"
+    d.mkdir(parents=True)
+    f = d / "pack.idx"
+    f.write_text("x")
+    os.chmod(f, stat.S_IREAD)
+    rmtree_force(tmp_path / "repo")
+    assert not (tmp_path / "repo").exists()
+    rmtree_force(tmp_path / "does-not-exist")  # never raises

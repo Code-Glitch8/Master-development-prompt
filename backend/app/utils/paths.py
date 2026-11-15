@@ -3,7 +3,10 @@ from __future__ import annotations
 
 import fnmatch
 import hashlib
+import os
 import re
+import shutil
+import stat
 from pathlib import Path, PurePosixPath
 
 # Files that must never be silently overwritten.
@@ -140,3 +143,16 @@ def unique_dir(parent: Path, base: str) -> Path:
         cand = parent / f"{base}-{n}"
         n += 1
     return cand
+
+
+def rmtree_force(path: Path | str) -> None:
+    """Remove a directory tree, including read-only files (git object files on Windows). Never raises."""
+
+    def _onexc(func, p, _exc):
+        try:
+            os.chmod(p, stat.S_IWRITE | stat.S_IREAD)
+            func(p)
+        except OSError:
+            pass
+
+    shutil.rmtree(path, onexc=_onexc)

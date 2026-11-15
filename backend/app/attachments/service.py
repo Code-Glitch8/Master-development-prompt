@@ -27,7 +27,7 @@ from ..projects.importer import project_root, sync_inventory
 from ..services.activity import log_event
 from ..services.events import bus
 from ..utils.paths import (
-    UnsafePathError, is_config, is_protected, normalize_rel, safe_join, sha256_bytes, sha256_file,
+    UnsafePathError, is_config, is_protected, normalize_rel, safe_join, sha256_bytes, sha256_file, rmtree_force,
 )
 from ..utils.safe_zip import ArchiveError, extract_zip, inspect_zip
 
@@ -202,7 +202,7 @@ def ingest_attachment(db: Session, project: Project, filename: str, content: byt
                 if f.is_file():
                     files[f.relative_to(tmp).as_posix()] = f.read_bytes()
         finally:
-            shutil.rmtree(tmp, ignore_errors=True)
+            rmtree_force(tmp)
     else:
         default_dir = "attachments" if att.file_type in {"pdf", "docx", "csv", "other"} and not target_dir else target_dir
         files[att.filename] = content

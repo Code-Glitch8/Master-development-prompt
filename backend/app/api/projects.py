@@ -17,7 +17,7 @@ from ..models import AIAccount, Project, ProjectFile, ProjectPrompt, ProjectProv
 from ..projects import gitops, importer
 from ..services.activity import log_event
 from ..tasks import planner, queue
-from ..utils.paths import UnsafePathError, is_protected, safe_join
+from ..utils.paths import UnsafePathError, is_protected, safe_join, rmtree_force
 from . import serializers as ser
 from .route import CommitRoute
 from .deps import project_or_404, prompt_or_404
@@ -111,7 +111,7 @@ async def import_zip(file: UploadFile = File(...), name: str | None = Form(None)
     finally:
         import shutil
 
-        shutil.rmtree(tmp, ignore_errors=True)
+        rmtree_force(tmp)
     return ser.project_dict(db, p, True)
 
 

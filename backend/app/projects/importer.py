@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from ..config import get_settings
 from ..models import Project, ProjectFile
 from ..services.activity import log_event
-from ..utils.paths import normalize_rel, safe_join, slugify
+from ..utils.paths import normalize_rel, safe_join, slugify, rmtree_force
 from ..utils.safe_zip import ArchiveError, extract_zip
 from . import gitops
 from .inventory import Inventory, build_inventory
@@ -100,7 +100,7 @@ def import_zip(db: Session, zip_path: Path, name: str | None = None, description
     try:
         report = extract_zip(zip_path, project_root(p))
     except ArchiveError as exc:
-        shutil.rmtree(project_root(p), ignore_errors=True)
+        rmtree_force(project_root(p))
         db.delete(p)
         db.flush()
         raise ImportError_(str(exc)) from exc
@@ -148,7 +148,7 @@ def import_git(db: Session, url: str, name: str | None = None, description: str 
     default_name = re.sub(r"\.git$", "", url.rstrip("/").split("/")[-1].split(":")[-1]) or "repository"
     p = create_project(db, name or default_name, description, "git")
     dest = project_root(p)
-    shutil.rmtree(dest, ignore_errors=True)
+    rmtree_force(dest)
     args = ["clone", "--quiet"]
     if branch:
         if not re.match(r"^[\w./-]+$", branch):
@@ -158,7 +158,7 @@ def import_git(db: Session, url: str, name: str | None = None, description: str 
     try:
         gitops.run_git(dest.parent, *args, "--", url, str(dest))
     except gitops.GitError as exc:
-        shutil.rmtree(dest, ignore_errors=True)
+        rmtree_force(dest)
         db.delete(p)
         db.flush()
         raise ImportError_(f"clone failed: {exc}") from exc
@@ -203,7 +203,7 @@ def delete_project(db: Session, p: Project, delete_files: bool = True) -> None:
         # only ever delete inside the managed projects dir
         projects_dir = get_settings().projects_dir.resolve()
         if projects_dir in root.resolve().parents:
-            shutil.rmtree(root, ignore_errors=True)
+            rmtree_force(root)
     log_event(db, "project.deleted", f"Project '{name}' deleted", project_id=pid)
 
 

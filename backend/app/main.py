@@ -135,20 +135,48 @@ def create_app(no_engine: bool = False) -> FastAPI:
 app = create_app()
 
 
-def main() -> None:
+def service_running(host: str, port: int, timeout: float = 1.0) -> bool:
+    """True if a Project Pilot service already answers on host:port."""
+    import urllib.request
+
+    try:
+        with urllib.request.urlopen(f"http://{host}:{port}/api/health", timeout=timeout) as r:  # noqa: S310
+            return json.load(r).get("status") == "ok"
+    except Exception:
+        return False
+
+
+def main(argv: list[str] | None = None) -> int:
     import uvicorn
 
-    parser = argparse.ArgumentParser(description="Project Pilot local service")
+    parser = argparse.ArgumentParser(description="Project Pilot local service (binds to 127.0.0.1 only)")
     parser.add_argument("--port", type=int, default=None)
     parser.add_argument("--no-browser", action="store_true", help="run headless (background service only)")
-    args = parser.parse_args()
+    parser.add_argument("--version", action="store_true")
+    args = parser.parse_args(argv)
+    if args.version:
+        print(f"Project Pilot {__version__}")
+        return 0
     s = get_settings()
     if args.port:
         s.port = args.port
+    url = f"http://{s.host}:{s.port}"
+    if service_running(s.host, s.port):
+        print(f"Project Pilot is already running at {url}")
+        if not args.no_browser:
+            webbrowser.open(url)
+        return 0
     if not args.no_browser:
-        threading.Timer(1.5, lambda: webbrowser.open(f"http://{s.host}:{s.port}")).start()
-    uvicorn.run(app, host=s.host, port=s.port, log_level="info")
+        threading.Timer(1.5, lambda: webbrowser.open(url)).start()
+    print(f"Project Pilot {__version__} - data folder: {s.data_dir}")
+    print(f"Dashboard: {url}  (close this window or press Ctrl+C to stop the background service)")
+    try:
+        uvicorn.run(app, host=s.host, port=s.port, log_level="info")
+    except OSError as exc:
+        print(f"Could not start on port {s.port}: {exc}\nAnother program may be using it. Try: --port {s.port + 1}")
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

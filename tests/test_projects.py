@@ -115,3 +115,22 @@ def test_timestamps_are_timezone_aware_utc(client, project):
         assert abs(datetime.now(timezone.utc) - dt) < timedelta(minutes=2)
     acts = client.get("/api/activity").json()
     assert acts and all(datetime.fromisoformat(a["created_at"]).tzinfo for a in acts)
+
+
+def test_health_reports_local_data_dir_and_version(client, home):
+    h = client.get("/api/health").json()
+    assert h["status"] == "ok" and h["version"]
+    assert h["data_dir"] == str(home / "data")  # data stays on this computer, in a known place
+
+
+def test_service_running_detects_closed_port():
+    from app.main import service_running
+
+    assert service_running("127.0.0.1", 1, timeout=0.3) is False
+
+
+def test_cli_version_flag(capsys):
+    from app.main import main
+
+    assert main(["--version"]) == 0
+    assert "Project Pilot" in capsys.readouterr().out

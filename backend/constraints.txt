@@ -1,0 +1,25 @@
+# Pinned versions the test-suite and the Windows build were verified with.
+# Used by CI and scripts\build_windows.bat so releases are built from the same inputs.
+fastapi==0.162.7
+starlette==1.7.0
+uvicorn==0.54.0
+SQLAlchemy==2.1.8
+pydantic==2.13.5
+pydantic_core==2.46.5
+python-multipart==0.0.32
+websockets==17.4
+aiofiles==25.1.0
+anyio==4.15.1
+h11==0.16.0
+httptools==0.9.0
+keyring==25.7.0
+jaraco.classes==3.4.0
+jaraco.context==6.1.2
+jaraco.functools==4.6.0
+pywin32-ctypes==0.2.3; sys_platform == "win32"
+pytest==9.1.1
+pytest-asyncio==1.5.0
+httpx==0.28.1
+pyinstaller==6.22.3
+pyinstaller-hooks-contrib==2026.10
+PyYAML==6.0.3

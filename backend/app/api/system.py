@@ -42,7 +42,8 @@ class ExportBody(BaseModel):
 
 @router.get("/health")
 def health():
-    return {"status": "ok", "version": __version__, "engine": engine.state}
+    return {"status": "ok", "version": __version__, "engine": engine.state,
+            "data_dir": str(get_settings().data_dir)}
 
 
 # ---- engine --------------------------------------------------------------------------------

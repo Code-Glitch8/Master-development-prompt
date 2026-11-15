@@ -13,6 +13,7 @@ const NOTIFS: [string, string][] = [
 
 export function Settings() {
   const { data, error, reload, setData } = useApi(() => api.get<Record<string, unknown>>("/settings"), []);
+  const health = useApi(() => api.get<{ data_dir: string; version: string }>("/health"), []);
   const { theme, setTheme } = useTheme();
   const [err, setErr] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
@@ -51,7 +52,8 @@ export function Settings() {
           {toggle("review.require_task_approval", "Require my approval before every task is marked completed")}</div>
       </Card>
       <Card title="Data & backups">
-        <p className="mb-3 text-sm text-muted">All projects, conversations, checkpoints and the database live in the <code>data</code> folder next to the application on this computer.</p>
+        <p className="mb-1 text-sm text-muted">All projects, conversations, checkpoints and the database stay on this computer, in:</p>
+        <p className="mb-3 break-all font-mono text-xs">{health.data?.data_dir ?? "…"}</p>
         <Button onClick={async () => { setErr(null); try { const r = await api.post<{ file: string }>("/backup"); setMsg(`Database backed up as ${r.file}`); void reload(true); } catch (e) { setErr(e instanceof Error ? e.message : String(e)); } }}>Back up database now</Button>
       </Card>
     </>
